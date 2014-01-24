@@ -1,0 +1,18 @@
+/*** Styles for TicTacToe ***/
+
+.board {
+  border: 1px solid #ccc;
+}
+
+.board td {
+  border: 1px solid #ccc;
+  padding: 40px;
+}
+
+.x, .o {
+  display: none;
+}
+
+.active {
+  display: block;
+}
