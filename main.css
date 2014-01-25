@@ -2,17 +2,32 @@
 
 .board {
   border: 1px solid #ccc;
+  margin: 40px;
 }
 
 .board td {
   border: 1px solid #ccc;
+  cursor: pointer;
   padding: 40px;
 }
 
 .x, .o {
-  display: none;
+  visibility: hidden;
+  position: absolute;
+  margin: -7px 0 0 -5px;
+  text-transform: uppercase;
+  color: #A2A0A0;
+  font-family: sans-serif;
 }
 
-.active {
-  display: block;
+.x.active, .o.active {
+  visibility: visible;
+}
+
+.reset {
+  background: #ccc;
+  border: 1px solid #aaa;
+  font-size: 16px;
+  margin-left: 40px;
+  padding: 10px 20px;
 }

@@ -15,49 +15,54 @@ var TicTacToe = function(board) {
 // Bind Events
 TicTacToe.prototype.bindEvents = function() {
   // Bind the move event
-  this.board.addEventListener('move', TicTacToe.prototype.checkScore.bind(this));
+  this.board.addEventListener('move', this.checkScore.bind(this));
 
   // Bind the cell click event
-  this.board.addEventListener('click', TicTacToe.prototype.takeTurn.bind(this));
+  this.board.addEventListener('click', this.takeTurn.bind(this));
+
+  // Bind the finished event
+  this.board.addEventListener('finished', this.finish.bind(this));
+
+  // Bind the reset event
+  document.querySelector('.reset').addEventListener('click', this.reset.bind(this));
 }
 
 // Take Turn
 TicTacToe.prototype.takeTurn = function(event) {
-  if (TicTacToe.prototype.checkClass(event.target, 'cell')) {
-    var symbol = 'x';
-    TicTacToe.prototype.placeMarker(symbol, event.target.dataset.row, event.target.dataset.col, this);
+  if (this.checkClass(event.target, 'cell') && !this.checkClass(this.board, 'finished')) {
+    if (this.canMoveTo(event.target)) {
+      this.placeMarker(this.data.turn, event.target.dataset.row, event.target.dataset.col, this, event.target);
+    }
   }
 }
 
 // Keep the score
-TicTacToe.prototype.scores = {
+TicTacToe.prototype.data = {
   xScore    : [],
   oScore    : [],
-  turnCount : 0
+  turnCount : 0,
+  turn      : 'x'
 }
 
 // Positions player's marker in a cell of the grid
 // - symbol can be "x" or "o",
 // - row and column can be an integer from 0 to 2.
-TicTacToe.prototype.placeMarker = function(symbol, row, column, self) {
+TicTacToe.prototype.placeMarker = function(symbol, row, column, self, cell) {
 
-  // Find the correct location on the board
-  var cell = document.querySelector('.cell-' + row + '-' + column);
+  // Make the cell active
+  cell.className += ' active';
 
-  // Check if we can select the cell
-  if (!this.canMoveTo(cell)) {
-    cell.querySelector('.' + symbol).className += 'active';
-  }
+  // Mark the cell with the symbol
+  cell.querySelector('.' + symbol).className += ' active';
 
   // Trigger the move event
-  self.trigger('move', { symbol: symbol, row: row, column: column });
-
+  self.trigger('move', { symbol: symbol, row: row, column: column, cell: cell });
 }
 
 // Indicates whether any symbol can be moved to (cell)
 // Returns true if (celll) is not occupied by another symbol
 TicTacToe.prototype.canMoveTo = function(cell) {
-  if (this.checkClass(cell, 'active')) {
+  if (!this.checkClass(cell, 'active')) {
     return true;
   }
 }
@@ -84,38 +89,69 @@ TicTacToe.prototype.on = function(eventName, callback) {
 // Check the score
 TicTacToe.prototype.checkScore = function(options) {
 
-  var winningCombinations = [
-    [0, 0, 0, 1, 0, 2],
-    [1, 0, 1, 1, 1, 2],
-    [2, 0, 2, 1, 2, 2],
-    [0 ,0, 1, 0, 2, 0],
-    [0, 1, 1, 1, 2, 1],
-    [0, 2, 1, 2, 2, 2],
-    [0, 0, 1, 1, 2, 2],
-    [0, 2, 1, 1, 2, 0]
-  ];
+  var winningCombinations = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 
+  // Increment the score
   if (options.detail.symbol === 'x') {
-    this.scores.xScore.push(options.detail.row, options.detail.column);
+    this.data.xScore.push(options.detail.cell.dataset.cell);
   } else {
-    this.scores.oScore.push(options.detail.row, options.detail.column);
+    this.data.oScore.push(options.detail.cell.dataset.cell);
   }
 
   for (i in winningCombinations) {
-    if (winningCombinations[i].sort().toString() == this.scores.xScore.sort().toString()) {
+    if (winningCombinations[i].sort().toString() == this.data.xScore.sort().toString()) {
       this.trigger('finished', 'x won');
+      alert('x won');
       break;
     }
-    if (winningCombinations[i].sort().toString() == this.scores.oScore.sort().toString()) {
-      this.board.trigger('finished', 'o won');
+
+    if (winningCombinations[i].sort().toString() == this.data.oScore.sort().toString()) {
+      this.trigger('finished', 'o won');
+      alert('o won');
       break;
     }
-    // console.log(this.scores.turnCount);
-    // if (this.scores.turnCount === 8) {
-    //   this.board.trigger('finished', 'draw');
-    // }
-    // this.scores.turnCount++;
   }
+
+  if (this.data.turnCount === 8) {
+    this.trigger('finished', 'draw');
+    alert('Draw');
+  }
+
+  // Increment the turn count
+  this.data.turnCount++;
+
+  // Change Player
+  this.changePlayer();
+
+}
+
+TicTacToe.prototype.changePlayer = function() {
+  if (this.data.turn === 'x') {
+    this.data.turn = 'o';
+  } else {
+    this.data.turn = 'x';
+  }
+}
+
+TicTacToe.prototype.finish = function() {
+  this.board.className += ' finished';
+}
+
+TicTacToe.prototype.reset = function() {
+  this.board.className = 'board';
+
+  // Clear the board
+  var activeCells = this.board.querySelectorAll('.active');
+
+  for (var i = 0; i < activeCells.length; i++) {
+    activeCells[i].className = activeCells[i].className.replace(' active','');
+  }
+
+  // Reset the game
+  this.data.xScore    = [];
+  this.data.oScore    = [];
+  this.data.turnCount = 0;
+  this.data.turn      = 'x';
 
 }
 
